@@ -26,8 +26,7 @@ This project is a solution to the Site Reliability Engineering take-home exercis
 
 Install dependencies using:
 
-```bash
-pip install -r requirements.txt
+```pip install -r requirements.txt```
 
 
 
