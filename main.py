@@ -2,6 +2,11 @@ import yaml
 import requests
 import time
 from collections import defaultdict
+from urllib.parse import urlparse
+
+
+domain_stats = defaultdict(lambda: {"up": 0, "total": 0})
+domain_stats_lock = threading.Lock()
 
 # Function to load configuration from the YAML file
 def load_config(file_path):
@@ -11,12 +16,18 @@ def load_config(file_path):
 # Function to perform health checks
 def check_health(endpoint):
     url = endpoint['url']
-    method = endpoint.get('method')
+   # adding GET method
+    method = endpoint.get("method", "GET")
     headers = endpoint.get('headers')
     body = endpoint.get('body')
 
     try:
-        response = requests.request(method, url, headers=headers, json=body)
+        # response = requests.request(method, url, headers=headers, json=body)
+        start = time.time()
+        response = requests.request(method, url, headers=headers, data=body, timeout=0.5)
+        response_time = (time.time() - start) * 1000
+        is_up = 200 <= response.status_code < 300 and response_time <= 500
+
         if 200 <= response.status_code < 300:
             return "UP"
         else:
