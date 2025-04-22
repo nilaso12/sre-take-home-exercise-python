@@ -69,14 +69,13 @@ def monitor_endpoints(file_path):
 
 # Entry point of the program
 if __name__ == "__main__":
-    import sys
-
     if len(sys.argv) != 2:
-        print("Usage: python monitor.py <config_file_path>")
+        print("Usage: python main.py <config_file_path>")
         sys.exit(1)
 
     config_file = sys.argv[1]
     try:
-        monitor_endpoints(config_file)
+        config = load_config(config_file)
+        monitor_endpoints(config)
     except KeyboardInterrupt:
         print("\nMonitoring stopped by user.")
