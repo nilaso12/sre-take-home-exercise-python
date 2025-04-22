@@ -3,6 +3,7 @@ import requests
 import time
 from collections import defaultdict
 from urllib.parse import urlparse
+import threading
 
 
 domain_stats = defaultdict(lambda: {"up": 0, "total": 0})
@@ -41,8 +42,12 @@ def monitor_endpoints(file_path):
     domain_stats = defaultdict(lambda: {"up": 0, "total": 0})
 
     while True:
+        threads = []
         for endpoint in config:
-            domain = endpoint["url"].split("//")[-1].split("/")[0]
+            # domain = endpoint["url"].split("//")[-1].split("/")[0]
+            t = threading.Thread(target=check_health, args=(endpoint,))
+            threads.append(t)
+            t.start()
             result = check_health(endpoint)
 
             domain_stats[domain]["total"] += 1
