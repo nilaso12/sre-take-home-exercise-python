@@ -42,29 +42,23 @@ def check_health(endpoint):
             domain_stats[domain]["up"] += 1
             
 # Main function to monitor endpoints
-def monitor_endpoints(file_path):
-    config = load_config(file_path)
-    domain_stats = defaultdict(lambda: {"up": 0, "total": 0})
-
+def monitor_endpoints(config):
     while True:
         threads = []
         for endpoint in config:
-            # domain = endpoint["url"].split("//")[-1].split("/")[0]
             t = threading.Thread(target=check_health, args=(endpoint,))
             threads.append(t)
             t.start()
-            # result = check_health(endpoint)
 
-            domain_stats[domain]["total"] += 1
-            if result == "UP":
-                domain_stats[domain]["up"] += 1
+        for t in threads:
+            t.join()
 
-        # Log cumulative availability percentages
-        for domain, stats in domain_stats.items():
-            availability = round(100 * stats["up"] / stats["total"])
-            print(f"{domain} has {availability}% availability percentage")
-
-        print("---")
+        print("Availability Report")
+        with domain_stats_lock:
+            for domain, stats in domain_stats.items():
+                # Drop decimals in availability as required
+                availability = int((stats["up"] / stats["total"]) * 100)
+                print(f"{domain} has {availability}% availability")
         time.sleep(15)
 
 # Entry point of the program
