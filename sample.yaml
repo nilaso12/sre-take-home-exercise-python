@@ -1,6 +1,6 @@
 - body: '{"foo":"bar"}'
   headers:
-    content-type: application/json
+    content-type: "application/json"
   method: POST
   name: sample body up
   url: https://dev-sre-take-home-exercise-rubric.us-east-1.recruiting-public.fetchrewards.com/body
