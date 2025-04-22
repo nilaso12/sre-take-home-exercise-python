@@ -14,13 +14,18 @@ def load_config(file_path):
     with open(file_path, 'r') as file:
         return yaml.safe_load(file)
 
+# Normalize domain 
+def get_domain(url):
+    return urlparse(url).hostname
+
 # Function to perform health checks
 def check_health(endpoint):
     url = endpoint['url']
    # adding GET method
     method = endpoint.get("method", "GET")
-    headers = endpoint.get('headers')
+    headers = endpoint.get('headers',{})
     body = endpoint.get('body')
+    domain = get_domain(url)
 
     try:
         # response = requests.request(method, url, headers=headers, json=body)
@@ -29,13 +34,13 @@ def check_health(endpoint):
         response_time = (time.time() - start) * 1000
         is_up = 200 <= response.status_code < 300 and response_time <= 500
 
-        if 200 <= response.status_code < 300:
-            return "UP"
-        else:
-            return "DOWN"
     except requests.RequestException:
-        return "DOWN"
-
+            is_up = False
+    with domain_stats_lock:
+        domain_stats[domain]["total"] += 1
+        if is_up:
+            domain_stats[domain]["up"] += 1
+            
 # Main function to monitor endpoints
 def monitor_endpoints(file_path):
     config = load_config(file_path)
@@ -48,7 +53,7 @@ def monitor_endpoints(file_path):
             t = threading.Thread(target=check_health, args=(endpoint,))
             threads.append(t)
             t.start()
-            result = check_health(endpoint)
+            # result = check_health(endpoint)
 
             domain_stats[domain]["total"] += 1
             if result == "UP":
